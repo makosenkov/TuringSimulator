@@ -3,4 +3,4 @@ project(TuringSimulator C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(TuringSimulator input.c input.h)
+add_executable(TuringSimulator input.c input.h main.c output.c step.c)

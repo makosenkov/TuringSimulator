@@ -1,7 +1,7 @@
 #include "input.h"
 
 #define ARRAY_SIZE 1
-#define TAPE_SIZE 20
+#define TAPE_SIZE 10
 
 int arrayContainsPair(struct Pair symbols, struct Pair *arr, int maxSize) {
     for (int i = 0; i < maxSize - 1; ++i) {
@@ -17,36 +17,9 @@ int arrayContainsInt(int symbol, int *arr, int maxSize) {
     return -1;
 }
 
-int main(int argc, char *argv[]) {
-    FILE *inputOne;
-    FILE *inputTwo;
-    FILE *output;
+int input (FILE *inputOne, FILE *inputTwo, FILE *outFile, int argc, char *argv[]) {
 
-    if (argc == 5 && (strcmp(argv[4], "-a") == 0 || strcmp(argv[4], "-o") == 0)) {
-
-        inputOne = fopen(argv[1], "rt");
-
-        if (inputOne == NULL) {
-            printf("Can not find file %s", argv[1]);
-            exit(100);
-        }
-
-        inputTwo = fopen(argv[2], "rt");
-        if (inputTwo == NULL) {
-            printf("Can not find file %s", argv[2]);
-            exit(100);
-        }
-
-        output = fopen(argv[3], "wr");
-        if (output == NULL) {
-            printf("Can not find file %s", argv[3]);
-        }
-    }
-
-    if (argc != 5) {
-        printf("Wrong number of arguments");
-        exit(101);
-    }
+    _Bool flag = false;
 
     struct Pair lastChar;
     struct Pair newChar;
@@ -142,35 +115,39 @@ int main(int argc, char *argv[]) {
 
     fclose(inputOne);
 
-    printf("\n");
-    //убрать печать
-    for (int k = 0; k < maxArraySize; ++k) {
-        for (int j = 0; j < maxArraySize; ++j) {
-            printf("[%c,%c]%d[%c,%c]", command_array[k][j].newChar.first,
-                   command_array[k][j].newChar.second, command_array[k][j].newStateNum, command_array[k][j].move.first,
-                   command_array[k][j].move.second);
-        }
-        printf("\n");
-    }
+     // печать матрицы смежности
+    //if (argc == 6 && (strcmp(argv[5], "-p") == 0)) {
+        printCommands(command_array, maxArraySize, outFile);
+   // }
 
     struct ArrayPair head;
     head.first = calloc(TAPE_SIZE, sizeof(char));
     head.second = calloc(TAPE_SIZE, sizeof(char));
+    if (head.first == NULL || head.second == NULL) {
+        printf("error 102: Memory allocation error\n");
+        exit(102);
+    }
+    
     int firstHeadState = -1;
     int secondHeadState = -1;
     struct ArrayPair tape;
     tape.first = calloc(TAPE_SIZE, sizeof(char));
     tape.second = calloc(TAPE_SIZE, sizeof(char));
-    int maxTapeSize = TAPE_SIZE;
+    if (tape.first == NULL || tape.second == NULL) {
+        printf("error 102: Memory allocation error\n");
+        exit(102);
+    }
 
-    ret = fscanf(inputTwo, " %s", head.first);
+    ret = fscanf(inputTwo, " %s", head.first); //читаем первую строку
 
-    if (ret == NULL) {
+    if (ret == -1) {
         printf("No input data in %s line 1", argv[2]);
         exit(107);
     }
 
+    int maxTapeSize = ret;
 
+    //память для первой головки
     while (head.first[maxTapeSize] != '\0') {
         maxTapeSize = maxTapeSize + 1;
         head.first = realloc(head.first, maxTapeSize * sizeof(int));
@@ -179,6 +156,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    //нахождение первой головки
     for (int l = 0; l < maxTapeSize; ++l) {
         if (head.first[l] != '_' && head.first[l] != 'v' && head.first[l] != '\0') {
             printf("Wrong input char %c in %s line 1", head.first[l], argv[2]);
@@ -194,21 +172,79 @@ int main(int argc, char *argv[]) {
         exit(109);
     }
 
-    ret = fscanf(inputTwo, " %s", tape.first);
+    ret = fscanf(inputTwo, " %s", tape.first); //читаем вторую строку
 
     if (ret == NULL) {
         printf("No input data in %s line 2", argv[2]);
         exit(107);
     }
 
+    ret = fscanf(inputTwo, " %s", head.second); //читаем третью строку
+
+    if (ret == NULL) {
+        printf("No input data in %s line 3", argv[2]);
+        exit(107);
+    }
+
+    //память для второй головки
+    while (head.second[maxTapeSize] != '\0') {
+        maxTapeSize = maxTapeSize + 1;
+        head.second = realloc(head.second, maxTapeSize * sizeof(int));
+        for (int j = maxTapeSize - 1; j < maxTapeSize; ++j) {
+            head.second[j] = '\0';
+        }
+    }
+
+    //нахождение второй головки
+    for (int l = 0; l < maxTapeSize; ++l) {
+        if (head.second[l] != '_' && head.second[l] != 'v' && head.second[l] != '\0') {
+            printf("Wrong input char %c in %s line 2", head.second[l], argv[2]);
+            exit(108);
+        }
+        if (head.second[l] == 'v'){
+            secondHeadState = l;
+        }
+    }
+
+
+
+    ret = fscanf(inputTwo, " %s", tape.second); //читаем четвертую строку
+
+    if (ret == NULL) {
+        printf("No input data in %s line 4", argv[2]);
+        exit(107);
+    }
+
     fclose(inputTwo);
 
     //убрать печать
-    printf("%d", firstHeadState);
-    printf("\n");
-    for (int m = 0; m < maxTapeSize; ++m) {
-        printf("%c", tape.first[m]);
+
+    if (strcmp(argv[4], "-o") == 0) { // вызван ли режим debug
+        flag = true;
     }
+
+    printHead(firstHeadState, maxTapeSize, outFile);
+    printTape(tape.first, maxTapeSize, outFile);
+    printHead(secondHeadState, maxTapeSize, outFile);
+    printTape(tape.second, maxTapeSize, outFile);
+
+    int quit = 0; //количество шагов
+
+    step(firstHeadState, secondHeadState, 1, tape, symbols, states, command_array, maxArraySize, maxTapeSize, quit, outFile, flag);
+
+    free(head.first);
+    free(head.second);
+    free(tape.first);
+    free(tape.second);
+    free(states);
+    free(symbols);
+    for (int m = 0; m < maxArraySize; ++m) {
+        free(command_array[m]);
+    }
+    fclose(outFile);
     exit(0);
 
 }
+
+
+
