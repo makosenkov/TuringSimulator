@@ -1,42 +1,34 @@
-#include <stdio.h>
-#include "input.h"
+#include "main.h"
 
-int main (int argc, char *argv[]){
-    FILE *inputOne;
-    FILE *inputTwo;
-    FILE *outFile;
+void initStorage(struct storage* inputStorage) {
 
-    if ((argc == 5) && (strcmp(argv[4], "-a") == 0 || strcmp(argv[4], "-o") == 0) ||
-        ((argc == 6) && (strcmp(argv[4], "-a") == 0 || strcmp(argv[4], "-o") == 0) && (strcmp(argv[5], "-p") == 0))) {
+    inputStorage->alphabet = (char*)malloc(sizeof(char));
+    inputStorage->alphabet[0] = '\0';
+    inputStorage->alphabetSize = 0;
+    inputStorage->currentHead[0] = NULL;
+    inputStorage->currentHead[1] = NULL;
+    inputStorage->tapeStart[0] = NULL;
+    inputStorage->tapeStart[1] = NULL;
+    inputStorage->tapeSize[0] = 0;
+    inputStorage->headIndex[0] = 0;
+    inputStorage->headIndex[1] = 0;
+    inputStorage->statesNumber = 0;
+    inputStorage->states = NULL;
+    inputStorage->outputFile = NULL;
 
-        inputOne = fopen(argv[1], "rt");
+}
 
-        if (inputOne == NULL) {
-            printf("error 100: Can not find first input file\n");
-            exit(100);
-        }
+int main(int argc, char* argv[]) {
 
-        inputTwo = fopen(argv[2], "rt");
-        if (inputTwo == NULL) {
-            printf("error 109: Can not find second input file\n");
-            exit(109);
-        }
+    struct storage* inputStorage = (struct storage*)malloc(sizeof(struct storage));
+    initStorage(inputStorage);
+    int printFlag = 0;
+    int executionMode;
+    parsing(inputStorage, argc, argv, &printFlag, &executionMode);
+    simulation(inputStorage, printFlag, executionMode);
+    if(inputStorage != NULL)
+        free(inputStorage); //todo
+    return 0;
 
-        outFile = fopen(argv[3], "wr");
-        if (outFile == NULL) {
-            printf("Can not find output file\n");
-        }
-    }
-
-    if (argc != 5) {
-        if (argc != 6 || (argc == 6 && (strcmp(argv[5], "-p") != 0))) {
-            printf("error 101: Wrong number of arguments\n");
-            exit(101);
-        }
-    }
-
-    input(inputOne, inputTwo, outFile, argc, argv);
-
-    exit(0);
 }
 
