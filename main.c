@@ -20,12 +20,12 @@ void initStorage(struct storage* inputStorage) {
 
 int main(int argc, char* argv[]) {
 
-    struct storage* inputStorage = (struct storage*)malloc(sizeof(struct storage));
-    initStorage(inputStorage);
-    int printFlag = 0;
-    int executionMode;
-    parsing(inputStorage, argc, argv, &printFlag, &executionMode);
-    simulation(inputStorage, printFlag, executionMode);
+    struct storage* inputStorage = (struct storage*)malloc(sizeof(struct storage)); //выделение памяти для ячейки, где лежит storage
+    initStorage(inputStorage); //инициализация полей
+    int printFlag = 0; //флаг наличия вывода входных штук
+    int executionMode; //флаг режима отладки
+    parsing(inputStorage, argc, argv, &printFlag, &executionMode); //парсингуем
+    simulation(inputStorage, printFlag, executionMode); //симулируем
     if(inputStorage != NULL)
         free(inputStorage); //todo
     return 0;

@@ -1,4 +1,5 @@
 #include "simulator.h"
+#include <stdlib.h>
 
 void tapesPrint(struct storage* inputStorage, struct transition* currentTrans, char readChar, int tape) {
 

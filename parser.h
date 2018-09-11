@@ -5,21 +5,21 @@
 #include <string.h>
 #include <malloc.h>
 
-//положение головки
+//символ на ленте
 struct tapeSymbol {
 
-    struct tapeSymbol* previousHead;
-    struct tapeSymbol* nextHead;
-    char symbol;
+    struct tapeSymbol* previousHead; //указатель на предыдущий символ
+    struct tapeSymbol* nextHead; //указатель на следующий символ
+    char symbol; //сам символ
 
 };
 
 //один переход
 struct transition {
 
-    char writeSymbol;
-    int writeTape;
-    int writeState; //номер состояния
+    char writeSymbol; //символ, который мы пишем
+    int writeTape; //лента, на которую пишем
+    int writeState; //номер состояния, в которое переходим
     int action; //L/R/H/S
     int flag;
 
@@ -27,22 +27,22 @@ struct transition {
 
 struct stateTransitions {
 
-    int tapeNumber;
-    struct transition** transitions;
+    int tapeNumber; //номер ленты
+    struct transition** transitions; //массив переходов
 
 };
 
 struct storage {
 
-    char* alphabet;
-    int alphabetSize;
-    struct tapeSymbol* currentHead[2];
-    struct tapeSymbol* tapeStart[2];
-    int tapeSize[2];
-    int headIndex[2];
-    int statesNumber;
-    struct stateTransitions** states; //двумерный массив указателей. количество переходов x алфавит
-    FILE* outputFile;
+    char* alphabet; //алфавит
+    int alphabetSize; //размер алфавита
+    struct tapeSymbol* currentHead[2]; //элементы под головками
+    struct tapeSymbol* tapeStart[2]; //начало лент
+    int tapeSize[2]; // текущие размеры лент
+    int headIndex[2]; //положение головок
+    int statesNumber; //количество состояний
+    struct stateTransitions** states; //массив состояний
+    FILE* outputFile; //указатель на файл вывода
 
 };
 
