@@ -48,6 +48,7 @@ struct storage {
 
 void parsing(struct storage*, int, char* [], int*, int*);
 int getSymbolIndex(char *, char);
+void freeStorage(struct storage*);
 
 #endif
 

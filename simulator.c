@@ -159,6 +159,7 @@ void simulation(struct storage* inputStorage, int printFlag, int executionMode) 
                     struct tapeSymbol *newSymbol = (struct tapeSymbol *) malloc(sizeof(struct tapeSymbol)); //добавляем память еще на один символ
                     if (newSymbol == NULL) {
                         printf("Memory allocation error\n");
+                        freeStorage(inputStorage);
                         exit(-1);
                     }
                     newSymbol->symbol = ' '; //пишем пустой символ
@@ -179,6 +180,7 @@ void simulation(struct storage* inputStorage, int printFlag, int executionMode) 
                     struct tapeSymbol *newSymbol = (struct tapeSymbol *) malloc(sizeof(struct tapeSymbol));
                     if (newSymbol == NULL) {
                         printf("Memory allocation error\n");
+                        freeStorage(inputStorage);
                         exit(-1);
                     }
                     newSymbol->symbol = ' ';
@@ -208,10 +210,12 @@ void simulation(struct storage* inputStorage, int printFlag, int executionMode) 
                 executionMode = 0; //отключение отладки
             else if(buf == 'b') {
                 printf("Program was terminated.\n"); //остановка программы
+                freeStorage(inputStorage);
                 exit(0);
             }
             else if(buf != 's') {
                 printf("Error: invalid input symbol!\n"); //проверка на дичь
+                freeStorage(inputStorage);
                 exit(-1);
             }
             getchar(); //для \n

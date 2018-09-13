@@ -1,1 +1,22 @@
 Simulation begins...
+Transition: 
+State number : 1
+Read tape: 0
+ Read symbol: a; Write tape number: 1; Write symbol: +; Next state: 1; Move: L
+First tape state: 
+v_____
+ ++ a+
+Second tape state: 
+_v___
++a +a
+Transition: 
+State number : 1
+Read tape: 1
+ Read symbol: a; Write tape number: 2; Write symbol:  ; Next state: 1; Move: S
+First tape state: 
+v_____
+ ++ a+
+Second tape state: 
+_v___
++  +a
+Program ended successfully. 

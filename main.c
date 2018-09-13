@@ -26,8 +26,7 @@ int main(int argc, char* argv[]) {
     int executionMode; //флаг режима отладки
     parsing(inputStorage, argc, argv, &printFlag, &executionMode); //парсингуем
     simulation(inputStorage, printFlag, executionMode); //симулируем
-    if(inputStorage != NULL)
-        free(inputStorage); //todo
+    freeStorage(inputStorage);
     return 0;
 
 }
