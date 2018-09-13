@@ -21,7 +21,7 @@ struct transition {
     int writeTape; //лента, на которую пишем
     int writeState; //номер состояния, в которое переходим
     int action; //L/R/H/S
-    int flag;
+    int flag; //для инициализации состояния
 
 };
 

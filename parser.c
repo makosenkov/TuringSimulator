@@ -15,6 +15,10 @@ int repeatCheck(char *alphabet, char symbol, int alphabetSize) {
 char *getLine(FILE *inputFile) {
 
     char *buffer = (char *) malloc(sizeof(char)); //сюда считываем строку из файла
+    if (buffer == NULL) {
+        printf("Memory allocation error\n");
+        exit(-1);
+    }
     int bufferSize = 0; //размер считанной строки
     buffer[bufferSize] = '\0'; //избавляемся от чуши в значении
     char symbol = getc(inputFile); //читаем символ
@@ -31,7 +35,11 @@ char *getLine(FILE *inputFile) {
         }
         symbol = getc(inputFile); //читаем следующий
     }
-    return buffer;
+    if (bufferSize == 0){
+        printf("Error: invalid input file format (something missed)\n");
+        exit(-1);
+    } else
+        return buffer;
 
 }
 
@@ -86,7 +94,7 @@ void getTape(struct storage *inputStorage, FILE *inputFile, int tapeNumber) {
             if (headIndex == -1) //проверка на несколько головок
                 headIndex = tapeSize;
             else { //вылетаем, если несколько головок
-                printf("Error: invalid input file format (tape %d)\n", tapeNumber + 1);
+                printf("Error: invalid input file format, multiple heads (tape %d)\n", tapeNumber + 1);
                 exit(-1);
             }
         } else if (buffer[tapeSize] != '_') { //проверяем на левые символы
@@ -108,6 +116,10 @@ void getTape(struct storage *inputStorage, FILE *inputFile, int tapeNumber) {
             exit(-1);
         }
         struct tapeSymbol *bufferTape = (struct tapeSymbol *) malloc(sizeof(struct tapeSymbol)); //создаем новый символ
+        if (bufferTape == NULL) {
+            printf("Memory allocation error\n");
+            exit(-1);
+        }
         bufferTape->previousHead = symbol; //предыдущий элемент
         bufferTape->nextHead = NULL;
         bufferTape->symbol = buffer[i]; //записываем символ
@@ -127,15 +139,31 @@ void getTape(struct storage *inputStorage, FILE *inputFile, int tapeNumber) {
 void transitionsListParsing(struct storage *inputStorage, FILE *inputFile) {
 
     inputStorage->states = (struct stateTransitions **) malloc(
-            inputStorage->statesNumber * sizeof(struct stateTransitions *));
+            inputStorage->statesNumber * sizeof(struct stateTransitions *)); //выделение памяти на массив состояний
+            if (inputStorage->states == NULL) {
+                printf("Memory allocation error\n");
+                exit(-1);
+            }
     for (int i = 0; i < inputStorage->statesNumber; i++) {
-        inputStorage->states[i] = (struct stateTransitions *) malloc(sizeof(struct stateTransitions));
-        inputStorage->states[i]->tapeNumber = -1;
+        inputStorage->states[i] = (struct stateTransitions *) malloc(sizeof(struct stateTransitions)); //память для содержимого
+        if (inputStorage->states[i] == NULL) {
+            printf("Memory allocation error\n");
+            exit(-1);
+        }
+        inputStorage->states[i]->tapeNumber = -1; //инициализация номера ленты
         inputStorage->states[i]->transitions = (struct transition **) malloc(
-                inputStorage->alphabetSize * sizeof(struct transition *));
+                inputStorage->alphabetSize * sizeof(struct transition *)); //память для массива переходов
+        if (inputStorage->states[i]->transitions == NULL) {
+            printf("Memory allocation error\n");
+            exit(-1);
+        }
         for (int j = 0; j < inputStorage->alphabetSize; j++) {
-            inputStorage->states[i]->transitions[j] = (struct transition *) malloc(
-                    inputStorage->alphabetSize * sizeof(struct transition));
+            inputStorage->states[i]->transitions[j] = (struct transition *) malloc(sizeof(struct transition)); //память для одного перехода
+            if (inputStorage->states[i]->transitions[j] == NULL) {
+                printf("Memory allocation error\n");
+                exit(-1);
+            }
+            //инициализация полей
             inputStorage->states[i]->transitions[j]->action = -1;
             inputStorage->states[i]->transitions[j]->flag = 0;
             inputStorage->states[i]->transitions[j]->writeState = -1;
@@ -153,16 +181,16 @@ void transitionsListParsing(struct storage *inputStorage, FILE *inputFile) {
             printf("Error: invalid transitions list format (too few transitions)\n");
             exit(-1);
         }
-        if (readState > inputStorage->statesNumber) {
+        if (readState >= inputStorage->statesNumber) {
             printf("Error: read state number out of bounds on %d line\n", i);
             exit(-1);
         }
-        int readSymbolIndex = getSymbolIndex(inputStorage->alphabet, readSymbol);
+        int readSymbolIndex = getSymbolIndex(inputStorage->alphabet, readSymbol); //индекс символа в массиве алфавита
         if (readSymbolIndex == -1) {
             printf("Error: invalid read symbol on %d line\n", i);
             exit(-1);
         }
-        if (inputStorage->states[readState]->transitions[readSymbolIndex]->flag == 1) {
+        if (inputStorage->states[readState]->transitions[readSymbolIndex]->flag == 1) { //проверяем, не инициализирован ли переход
             printf("Error: state redefinition on %d line\n", i);
             exit(-1);
         }
@@ -172,22 +200,23 @@ void transitionsListParsing(struct storage *inputStorage, FILE *inputFile) {
             exit(-1);
         }
         inputStorage->states[readState]->transitions[readSymbolIndex]->writeState = writeState;
+        //проверяем наличие в алфавите символа, который хотим записать
         if (!repeatCheck(inputStorage->alphabet, writeSymbol, inputStorage->alphabetSize)) {
             printf("Error: invalid write symbol on %d line\n", i);
             exit(-1);
         }
         inputStorage->states[readState]->transitions[readSymbolIndex]->writeSymbol = writeSymbol;
         if (readTape == 'O') {
-            if (inputStorage->states[readState]->tapeNumber == -1)
-                inputStorage->states[readState]->tapeNumber = 0;
-            else if (inputStorage->states[readState]->tapeNumber != 0) {
+            if (inputStorage->states[readState]->tapeNumber == -1) //если еще не инициализировали номер ленты
+                inputStorage->states[readState]->tapeNumber = 0; //ставим индекс 0 (первая лента)
+            else if (inputStorage->states[readState]->tapeNumber != 0) { //проверяем, что в этом состоянии указан только один номер ленты
                 printf("Error: invalid read tape number on %d line\n", i);
                 exit(-1);
             }
         } else if (readTape == 'T') {
-            if (inputStorage->states[readState]->tapeNumber == -1)
-                inputStorage->states[readState]->tapeNumber = 1;
-            else if (inputStorage->states[readState]->tapeNumber != 1) {
+            if (inputStorage->states[readState]->tapeNumber == -1) //если еще не инициализировали номер ленты
+                inputStorage->states[readState]->tapeNumber = 1; //ставим индекс 1 (вторая лента)
+            else if (inputStorage->states[readState]->tapeNumber != 1) { //проверяем, что в этом состоянии указан только один номер ленты
                 printf("Error: invalid read tape number on %d line\n", i);
                 exit(-1);
             }
@@ -195,6 +224,8 @@ void transitionsListParsing(struct storage *inputStorage, FILE *inputFile) {
             printf("Error: invalid read tape identifier on %d line\n", i);
             exit(-1);
         }
+
+        //инициализация лент, на которые записываем
         if (writeTape == 'O')
             inputStorage->states[readState]->transitions[readSymbolIndex]->writeTape = 0;
         else if (writeTape == 'T')
@@ -203,6 +234,8 @@ void transitionsListParsing(struct storage *inputStorage, FILE *inputFile) {
             printf("Error: invalid write tape identifier on %d line\n", i);
             exit(-1);
         }
+
+        //инициализация действий
         if (action == 'L')
             inputStorage->states[readState]->transitions[readSymbolIndex]->action = 0;
         else if (action == 'R')
@@ -215,6 +248,11 @@ void transitionsListParsing(struct storage *inputStorage, FILE *inputFile) {
             printf("Error: invalid action identifier on %d line\n", i);
             exit(-1);
         }
+    }
+    if(fscanf(inputFile, "-%c-%c%d-%c-%c%d-%c\r\n", &readTape,
+                         &readSymbol, &readState, &writeTape, &writeSymbol, &writeState, &action) != -1) {
+        printf("Error: too many transitions in input file\n");
+        exit(-1);
     }
 
 }
